@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دفتر - نظام نقاط البيع والمحاسبة الذكي</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --accent: #7c3aed;
+      --accent-light: #a78bfa;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #0a0e1a;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-card-hover: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-bright: #f8fafc;
+      --border: rgba(255,255,255,0.08);
+      --glow-primary: rgba(37,99,235,0.4);
+      --glow-accent: rgba(124,58,237,0.4);
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; line-height: 1.7; }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; }
+
+    .bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px); background-size: 60px 60px; }
+    .bg-orbs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .bg-orbs .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15; animation: orbFloat 20s ease-in-out infinite alternate; }
+    .bg-orbs .orb:nth-child(1) { width: 600px; height: 600px; background: var(--primary); top: -10%; right: -5%; animation-delay: 0s; }
+    .bg-orbs .orb:nth-child(2) { width: 500px; height: 500px; background: var(--accent); bottom: -10%; left: -5%; animation-delay: -7s; }
+    .bg-orbs .orb:nth-child(3) { width: 400px; height: 400px; background: var(--success); top: 50%; left: 40%; animation-delay: -14s; }
+    @keyframes orbFloat { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.1); } 100% { transform: translate(-20px,20px) scale(0.95); } }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+    .section { padding: 100px 0; position: relative; }
+    .section-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border-radius: 50px; font-size: 13px; font-weight: 600; background: rgba(37,99,235,0.1); color: var(--primary-light); border: 1px solid rgba(37,99,235,0.2); margin-bottom: 18px; }
+    .section-badge i { font-size: 11px; }
+    .section-title { font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.3; margin-bottom: 16px; color: var(--text-bright); }
+    .section-title span { background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section-subtitle { font-size: 17px; color: var(--text-muted); max-width: 600px; margin-bottom: 40px; }
+
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; } .reveal-delay-2 { transition-delay: 0.2s; } .reveal-delay-3 { transition-delay: 0.3s; } .reveal-delay-4 { transition-delay: 0.4s; }
+
+    .navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 16px 0; transition: all 0.4s; }
+    .navbar.scrolled { background: rgba(10,14,26,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 10px 0; }
+    .navbar .container { display: flex; align-items: center; justify-content: space-between; }
+    .navbar-logo { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; }
+    .navbar-logo .logo-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), var(--accent)); font-size: 20px; color: #fff; box-shadow: 0 4px 20px var(--glow-primary); }
+    .navbar-links { display: flex; align-items: center; gap: 32px; }
+    .navbar-links a { font-size: 15px; color: var(--text-muted); transition: color 0.3s; position: relative; }
+    .navbar-links a:hover { color: var(--text-bright); }
+    .navbar-links a::after { content: ''; position: absolute; bottom: -4px; right: 0; width: 0; height: 2px; background: var(--primary-light); border-radius: 2px; transition: width 0.3s; }
+    .navbar-links a:hover::after { width: 100%; }
+    .navbar-cta { padding: 10px 28px; border-radius: 12px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+    .navbar-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px var(--glow-primary); }
+    .mobile-menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+
+    .hero { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; position: relative; overflow: hidden; }
+    .hero-content { text-align: center; max-width: 800px; margin: 0 auto; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.25); margin-bottom: 28px; animation: badgePulse 3s ease-in-out infinite; }
+    @keyframes badgePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.2); } 50% { box-shadow: 0 0 0 12px rgba(16,185,129,0); } }
+    .hero-title { font-size: clamp(36px, 6vw, 64px); font-weight: 900; line-height: 1.15; margin-bottom: 24px; color: var(--text-bright); letter-spacing: -0.02em; }
+    .hero-title .gradient-text { background: linear-gradient(135deg, var(--primary-light), var(--accent-light), var(--success)); background-size: 200% 200%; animation: gradientShift 4s ease infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .hero-description { font-size: 19px; color: var(--text-muted); max-width: 550px; margin: 0 auto 40px; line-height: 1.8; }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+    .btn-hero-primary { padding: 16px 40px; border-radius: 16px; font-size: 17px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.4s; position: relative; overflow: hidden; }
+    .btn-hero-primary::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent); opacity: 0; transition: opacity 0.4s; }
+    .btn-hero-primary:hover::before { opacity: 1; }
+    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 50px var(--glow-primary); }
+    .btn-hero-secondary { padding: 16px 40px; border-radius: 16px; font-size: 17px; font-weight: 700; background: var(--bg-card); color: var(--text-bright); border: 1px solid var(--border); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; transition: all 0.4s; backdrop-filter: blur(10px); }
+    .btn-hero-secondary:hover { background: var(--bg-card-hover); border-color: var(--primary-light); transform: translateY(-3px); }
+
+    .hero-visual { position: relative; max-width: 900px; margin: 0 auto; }
+    .hero-mockup { width: 100%; border-radius: 20px; overflow: hidden; position: relative; background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08)); border: 1px solid var(--border); padding: 3px; box-shadow: 0 40px 100px rgba(0,0,0,0.5), 0 0 80px var(--glow-primary); animation: mockupFloat 6s ease-in-out infinite; }
+    @keyframes mockupFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    .mockup-inner { background: linear-gradient(180deg, #111827, #0f172a); border-radius: 17px; padding: 20px; min-height: 400px; display: flex; flex-direction: column; gap: 16px; }
+    .mockup-header { display: flex; align-items: center; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .mockup-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .mockup-dot:nth-child(1) { background: var(--danger); } .mockup-dot:nth-child(2) { background: var(--warning); } .mockup-dot:nth-child(3) { background: var(--success); }
+    .mockup-title-bar { font-size: 13px; color: var(--text-muted); margin-right: auto; }
+    .mockup-body { display: grid; grid-template-columns: 200px 1fr; gap: 16px; flex: 1; }
+    .mockup-sidebar { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .mockup-sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--text-muted); }
+    .mockup-sidebar-item.active { background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(124,58,237,0.1)); color: var(--primary-light); }
+    .mockup-sidebar-item i { width: 18px; text-align: center; }
+    .mockup-content { background: rgba(255,255,255,0.02); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .mockup-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .mockup-stat { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 16px; text-align: center; border: 1px solid var(--border); }
+    .mockup-stat .stat-value { font-size: 24px; font-weight: 800; color: var(--text-bright); }
+    .mockup-stat .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .mockup-chart { flex: 1; background: rgba(255,255,255,0.03); border-radius: 10px; padding: 20px; display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; min-height: 120px; }
+    .chart-bar { width: 32px; border-radius: 6px 6px 0 0; animation: barGrow 2s ease-out forwards; opacity: 0; }
+    @keyframes barGrow { from { height: 0; opacity: 0; } to { opacity: 1; } }
+
+    .hero-float-badge { position: absolute; padding: 12px 20px; border-radius: 14px; background: rgba(15,23,42,0.9); backdrop-filter: blur(20px); border: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); animation: floatBadge 4s ease-in-out infinite; z-index: 2; }
+    .hero-float-badge i { font-size: 18px; }
+    .hero-float-badge.badge-1 { top: 15%; right: -40px; } .hero-float-badge.badge-2 { bottom: 25%; left: -50px; animation-delay: -1.5s; } .hero-float-badge.badge-3 { top: 8%; left: -30px; animation-delay: -3s; }
+    @keyframes floatBadge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+    .stats-bar { padding: 40px 0; background: linear-gradient(180deg, transparent, rgba(37,99,235,0.03), transparent); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; text-align: center; }
+    .stat-number { font-size: 42px; font-weight: 900; background: linear-gradient(135deg, var(--primary-light), var(--accent-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-label { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; transition: all 0.5s; position: relative; overflow: hidden; cursor: default; }
+    .feature-card::before { content: ''; position: absolute; top: 0; right: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent)); transform: scaleX(0); transform-origin: right; transition: transform 0.5s; }
+    .feature-card:hover::before { transform: scaleX(1); }
+    .feature-card:hover { background: var(--bg-card-hover); border-color: rgba(37,99,235,0.2); transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .feature-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 20px; transition: transform 0.4s; }
+    .feature-card:hover .feature-icon { transform: scale(1.1) rotate(-5deg); }
+    .feature-icon.blue { background: rgba(37,99,235,0.12); color: var(--primary-light); }
+    .feature-icon.purple { background: rgba(124,58,237,0.12); color: var(--accent-light); }
+    .feature-icon.green { background: rgba(16,185,129,0.12); color: var(--success); }
+    .feature-icon.amber { background: rgba(245,158,11,0.12); color: var(--warning); }
+    .feature-icon.rose { background: rgba(244,63,94,0.12); color: #fb7185; }
+    .feature-icon.cyan { background: rgba(6,182,212,0.12); color: #22d3ee; }
+    .feature-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-bright); }
+    .feature-desc { font-size: 14px; color: var(--text-muted); line-height: 1.8; }
+
+    .biz-carousel { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .biz-carousel::-webkit-scrollbar { display: none; }
+    .biz-card { flex: 0 0 180px; scroll-snap-align: start; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 28px 20px; text-align: center; transition: all 0.4s; cursor: default; }
+    .biz-card:hover { background: var(--bg-card-hover); border-color: rgba(37,99,235,0.3); transform: translateY(-4px); }
+    .biz-card .biz-icon { width: 60px; height: 60px; border-radius: 16px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1)); color: var(--primary-light); }
+    .biz-card .biz-name { font-size: 15px; font-weight: 700; color: var(--text-bright); }
+
+    .steps-grid { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+    .step-card { flex: 1; min-width: 220px; max-width: 280px; text-align: center; }
+    .step-number { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; box-shadow: 0 8px 30px var(--glow-primary); position: relative; z-index: 1; }
+    .step-number::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px dashed rgba(37,99,235,0.3); animation: spin 12s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text-bright); }
+    .step-desc { font-size: 14px; color: var(--text-muted); }
+
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; align-items: start; }
+    .pricing-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 36px 28px; text-align: center; transition: all 0.5s; position: relative; overflow: hidden; }
+    .pricing-card.featured { border-color: rgba(37,99,235,0.4); background: linear-gradient(180deg, rgba(37,99,235,0.08), var(--bg-card)); transform: scale(1.04); }
+    .pricing-card.featured::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--success)); }
+    .pricing-card:hover { transform: translateY(-8px); box-shadow: 0 24px 60px rgba(0,0,0,0.4); border-color: rgba(37,99,235,0.3); }
+    .pricing-card.featured:hover { transform: scale(1.04) translateY(-8px); }
+    .pricing-popular { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); padding: 4px 18px; border-radius: 20px; font-size: 12px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; }
+    .pricing-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text-bright); margin-top: 10px; }
+    .pricing-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    .pricing-price { font-size: 48px; font-weight: 900; color: var(--text-bright); margin-bottom: 4px; }
+    .pricing-price .currency { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-right: 4px; }
+    .pricing-period { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+    .pricing-features { list-style: none; text-align: right; margin-bottom: 28px; }
+    .pricing-features li { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .pricing-features li:last-child { border-bottom: none; }
+    .pricing-features li i { color: var(--success); font-size: 12px; width: 16px; text-align: center; }
+    .btn-pricing { width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: all 0.4s; }
+    .btn-pricing.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; }
+    .btn-pricing.primary:hover { box-shadow: 0 12px 40px var(--glow-primary); transform: translateY(-2px); }
+    .btn-pricing.outlined { background: transparent; color: var(--primary-light); border: 2px solid rgba(37,99,235,0.3); }
+    .btn-pricing.outlined:hover { border-color: var(--primary-light); background: rgba(37,99,235,0.05); }
+
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testimonial-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 28px; transition: all 0.4s; }
+    .testimonial-card:hover { background: var(--bg-card-hover); transform: translateY(-4px); }
+    .testimonial-stars { color: var(--warning); font-size: 14px; margin-bottom: 14px; }
+    .testimonial-text { font-size: 14px; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 12px; }
+    .testimonial-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #fff; }
+    .testimonial-name { font-size: 14px; font-weight: 700; color: var(--text-bright); }
+    .testimonial-role { font-size: 12px; color: var(--text-muted); }
+
+    .faq-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s; }
+    .faq-item.active { border-color: rgba(37,99,235,0.3); background: var(--bg-card-hover); }
+    .faq-question { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--text-bright); transition: color 0.3s; }
+    .faq-question:hover { color: var(--primary-light); }
+    .faq-question i { font-size: 14px; transition: transform 0.3s; color: var(--text-muted); }
+    .faq-item.active .faq-question i { transform: rotate(180deg); color: var(--primary-light); }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.4s; padding: 0 24px; font-size: 14px; color: var(--text-muted); line-height: 1.8; }
+    .faq-item.active .faq-answer { max-height: 200px; padding: 0 24px 20px; }
+
+    .cta-section { text-align: center; padding: 100px 0; background: linear-gradient(180deg, transparent, rgba(37,99,235,0.05), transparent); }
+    .cta-box { background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1)); border: 1px solid rgba(37,99,235,0.2); border-radius: 32px; padding: 60px 40px; position: relative; overflow: hidden; }
+    .cta-box::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(37,99,235,0.08) 0%, transparent 60%); animation: ctaPulse 8s ease-in-out infinite; }
+    @keyframes ctaPulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+    .cta-title { font-size: clamp(28px, 4vw, 40px); font-weight: 900; margin-bottom: 16px; color: var(--text-bright); position: relative; }
+    .cta-desc { font-size: 17px; color: var(--text-muted); margin-bottom: 32px; position: relative; }
+
+    .footer { padding: 60px 0 30px; border-top: 1px solid var(--border); background: linear-gradient(180deg, transparent, rgba(0,0,0,0.3)); }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand .logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+    .footer-brand .logo .logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; }
+    .footer-brand p { font-size: 14px; color: var(--text-muted); max-width: 280px; line-height: 1.8; }
+    .footer-col h4 { font-size: 15px; font-weight: 700; color: var(--text-bright); margin-bottom: 16px; }
+    .footer-col a { display: block; padding: 6px 0; font-size: 14px; color: var(--text-muted); transition: color 0.3s, padding-right 0.3s; }
+    .footer-col a:hover { color: var(--primary-light); padding-right: 6px; }
+    .footer-bottom { text-align: center; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+
+    .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .particle { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: rgba(37,99,235,0.4); animation: particleRise linear infinite; }
+    @keyframes particleRise { from { transform: translateY(100vh) scale(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } to { transform: translateY(-10vh) scale(1); opacity: 0; } }
+
+    .typing-container { display: inline-block; position: relative; }
+    .typing-text { display: inline; }
+    .typing-cursor { display: inline-block; width: 3px; height: 1em; background: var(--primary-light); margin-right: 4px; animation: blink 0.8s step-end infinite; vertical-align: text-bottom; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .unpublished-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: var(--danger); color: #fff; text-align: center; padding: 12px; font-weight: 700; font-size: 15px; display: none; }
+
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+      .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); }
+      .mockup-body { grid-template-columns: 1fr; }
+      .mockup-sidebar { display: none; }
+    }
+    @media (max-width: 768px) {
+      .navbar-links { display: none; }
+      .mobile-menu-btn { display: block; }
+      .features-grid, .testimonials-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .pricing-card.featured { transform: none; }
+      .pricing-card.featured:hover { transform: translateY(-8px); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-float-badge { display: none; }
+      .steps-grid { flex-direction: column; align-items: center; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(37,99,235,0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(37,99,235,0.5); }
+  </style>
+</head>
+<body>
+  <div class="unpublished-banner" id="unpublishedBanner">هذه الصفحة غير منشورة حالياً</div>
+  <div class="bg-grid"></div>
+  <div class="bg-orbs"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+  <div class="particles" id="particles"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="navbar-logo">
+        <div class="logo-icon"><i class="fas fa-book-open"></i></div>
+        <span>دفتر</span>
+      </a>
+      <div class="navbar-links">
+        <a href="#features">المميزات</a>
+        <a href="#business">الأنشطة</a>
+        <a href="#how-it-works">كيف يعمل</a>
+        <a href="#pricing">الأسعار</a>
+        <a href="#testimonials">آراء العملاء</a>
+        <a href="#faq">الأسئلة الشائعة</a>
+      </div>
+      <button class="navbar-cta" onclick="smoothScroll('#pricing')">ابدأ الآن</button>
+      <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content reveal">
+        <div class="hero-badge"><i class="fas fa-rocket"></i><span id="heroBadge"></span></div>
+        <h1 class="hero-title">
+          <span id="heroTitleLine1"></span><br>
+          <span class="gradient-text typing-container">
+            <span class="typing-text" id="typingText"></span>
+            <span class="typing-cursor"></span>
+          </span>
+        </h1>
+        <p class="hero-description" id="heroDesc"></p>
+        <div class="hero-buttons">
+          <button class="btn-hero-primary" id="heroBtnPrimary" onclick="smoothScroll('#pricing')"><i class="fas fa-download"></i> <span></span></button>
+          <button class="btn-hero-secondary" onclick="smoothScroll('#features')"><i class="fas fa-play-circle"></i> <span id="heroBtnSecondary"></span></button>
+        </div>
+      </div>
+      <div class="hero-visual reveal reveal-delay-2">
+        <div class="hero-mockup">
+          <div class="mockup-inner">
+            <div class="mockup-header">
+              <div class="mockup-dot"></div><div class="mockup-dot"></div><div class="mockup-dot"></div>
+              <span class="mockup-title-bar">دفتر — لوحة التحكم</span>
+            </div>
+            <div class="mockup-body">
+              <div class="mockup-sidebar">
+                <div class="mockup-sidebar-item active"><i class="fas fa-tachometer-alt"></i> لوحة التحكم</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-cash-register"></i> نقطة البيع</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-box"></i> المنتجات</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-users"></i> العملاء</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-chart-pie"></i> التقارير</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-truck"></i> الموردين</div>
+                <div class="mockup-sidebar-item"><i class="fas fa-cog"></i> الإعدادات</div>
+              </div>
+              <div class="mockup-content">
+                <div class="mockup-stat-row">
+                  <div class="mockup-stat"><div class="stat-value" data-counter="1250">0</div><div class="stat-label">المبيعات اليوم</div></div>
+                  <div class="mockup-stat"><div class="stat-value" data-counter="87">0</div><div class="stat-label">فاتورة</div></div>
+                  <div class="mockup-stat"><div class="stat-value" data-counter="342">0</div><div class="stat-label">منتج</div></div>
+                </div>
+                <div class="mockup-chart" id="mockupChart"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-float-badge badge-1"><i class="fas fa-bolt" style="color:var(--warning)"></i><div><div style="font-weight:700;color:var(--text-bright)">سريع وخفيف</div><div style="font-size:11px;color:var(--text-muted)">أداء فوري بدون تأخير</div></div></div>
+        <div class="hero-float-badge badge-2"><i class="fas fa-wifi-slash" style="color:var(--success)"></i><div><div style="font-weight:700;color:var(--text-bright)">يعمل بدون نت</div><div style="font-size:11px;color:var(--text-muted)">بياناتك آمنة محلياً</div></div></div>
+        <div class="hero-float-badge badge-3"><i class="fas fa-shield-alt" style="color:var(--primary-light)"></i><div><div style="font-weight:700;color:var(--text-bright)">محمي ومشفر</div><div style="font-size:11px;color:var(--text-muted)">تشفير متقدم</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar"><div class="container"><div class="stats-grid" id="statsGrid"></div></div></div>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-star"></i> مميزات متقدمة</div>
+        <h2 class="section-title" style="margin:0 auto 16px">كل ما تحتاجه في <span>نظام واحد</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 48px">أدوات احترافية مصممة لتسهيل إدارة تجارتك من الألف إلى الياء</p>
+      </div>
+      <div class="features-grid" id="featuresGrid"></div>
+    </div>
+  </section>
+
+  <!-- Business Types -->
+  <section class="section" id="business">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-store"></i> أنشطة تجارية</div>
+        <h2 class="section-title" style="margin:0 auto 16px">مناسب لـ <span>جميع أنواع التجارة</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 32px">نظام مرن يتكيف مع طبيعة نشاطك التجاري بإعدادات مخصصة لكل قطاع</p>
+      </div>
+      <div class="biz-carousel reveal" id="bizCarousel"></div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-magic"></i> البداية سهلة</div>
+        <h2 class="section-title" style="margin:0 auto 16px">ابدأ في <span>3 خطوات بسيطة</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 48px">لا تحتاج خبرة تقنية — النظام يرشدك خطوة بخطوة</p>
+      </div>
+      <div class="steps-grid" id="stepsGrid"></div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-tags"></i> خطط الأسعار</div>
+        <h2 class="section-title" style="margin:0 auto 16px">اختر <span>الباقة المناسبة</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 48px">باقات مرنة تناسب جميع الأحجام — ابدأ مجاناً بدون بطاقة ائتمان</p>
+      </div>
+      <div class="pricing-grid" id="pricingGrid"></div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="section" id="testimonials">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-heart"></i> آراء العملاء</div>
+        <h2 class="section-title" style="margin:0 auto 16px">ماذا يقول <span>عملاؤنا</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 48px">آلاف التجار يثقون بدفتر لإدارة أعمالهم اليومية</p>
+      </div>
+      <div class="testimonials-grid" id="testimonialsGrid"></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div style="text-align:center" class="reveal">
+        <div class="section-badge"><i class="fas fa-question-circle"></i> أسئلة شائعة</div>
+        <h2 class="section-title" style="margin:0 auto 16px">الأسئلة <span>الأكثر شيوعاً</span></h2>
+        <p class="section-subtitle" style="margin:0 auto 48px">إجابات سريعة لأهم الأسئلة حول نظام دفتر</p>
+      </div>
+      <div class="faq-list" id="faqList"></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-box reveal">
+        <h2 class="cta-title" id="ctaTitle"></h2>
+        <p class="cta-desc" id="ctaDesc"></p>
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;position:relative">
+          <button class="btn-hero-primary" id="ctaBtnPrimary" onclick="smoothScroll('#pricing')"><i class="fas fa-download"></i> <span></span></button>
+          <button class="btn-hero-secondary" id="ctaBtnSecondary"><i class="fab fa-whatsapp"></i> <span></span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo"><div class="logo-icon"><i class="fas fa-book-open"></i></div><span>دفتر</span></div>
+          <p id="footerBrandDesc"></p>
+        </div>
+        <div class="footer-col">
+          <h4>المنتج</h4>
+          <a href="#features">المميزات</a><a href="#pricing">الأسعار</a><a href="#business">الأنشطة المدعومة</a><a href="#faq">أسئلة شائعة</a>
+        </div>
+        <div class="footer-col">
+          <h4>الدعم</h4>
+          <a href="#">مركز المساعدة</a><a href="#">دليل المستخدم</a><a href="#">التوثيق الفني</a><a href="#">تواصل معنا</a>
+        </div>
+        <div class="footer-col">
+          <h4>الشركة</h4>
+          <a href="#">عن دفتر</a><a href="#">سياسة الخصوصية</a><a href="#">شروط الاستخدام</a><a href="#">الترخيص</a>
+        </div>
+      </div>
+      <div class="footer-bottom" id="footerCopyright"></div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Config Loading & Rendering ──
+    let CONFIG = null;
+
+    async function loadConfig() {
+      try {
+        const resp = await fetch('/api/config');
+        const json = await resp.json();
+        if (json.success) {
+          CONFIG = json.data;
+          renderPage();
+        }
+      } catch (e) {
+        // Fallback: try loading config.json directly
+        try {
+          const resp = await fetch('/config.json');
+          CONFIG = await resp.json();
+          renderPage();
+        } catch { console.error('Failed to load config'); }
+      }
+    }
+
+    function renderPage() {
+      const c = CONFIG;
+      if (!c) return;
+
+      // Apply custom colors
+      if (c.colors) {
+        if (c.colors.primary) document.documentElement.style.setProperty('--primary', c.colors.primary);
+        if (c.colors.accent) document.documentElement.style.setProperty('--accent', c.colors.accent);
+        if (c.colors.success) document.documentElement.style.setProperty('--success', c.colors.success);
+      }
+
+      // Published state
+      if (c.is_published === false) {
+        document.getElementById('unpublishedBanner').style.display = 'block';
+      }
+
+      // Hero
+      document.getElementById('heroBadge').textContent = c.hero.badge;
+      document.getElementById('heroTitleLine1').textContent = c.hero.title_line1;
+      document.getElementById('heroDesc').textContent = c.hero.description;
+      document.getElementById('heroBtnPrimary').querySelector('span').textContent = c.hero.btn_primary;
+      document.getElementById('heroBtnSecondary').textContent = c.hero.btn_secondary;
+      if (c.hero.download_url) {
+        document.getElementById('heroBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
+        document.getElementById('ctaBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
+      }
+
+      // Stats
+      const statsGrid = document.getElementById('statsGrid');
+      c.stats.forEach((s, i) => {
+        statsGrid.innerHTML += `<div class="stat-item reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
+          <div class="stat-number" data-count="${s.value}">${s.value}${s.suffix}</div>
+          <div class="stat-label">${escapeHtml(s.label)}</div>
+        </div>`;
+      });
+
+      // Features
+      const featuresGrid = document.getElementById('featuresGrid');
+      c.features.forEach((f, i) => {
+        featuresGrid.innerHTML += `<div class="feature-card reveal ${i > 0 ? 'reveal-delay-' + Math.min(i, 3) : ''}">
+          <div class="feature-icon ${escapeHtml(f.color)}"><i class="${escapeHtml(f.icon)}"></i></div>
+          <h3 class="feature-title">${escapeHtml(f.title)}</h3>
+          <p class="feature-desc">${escapeHtml(f.desc)}</p>
+        </div>`;
+      });
+
+      // Business Types
+      const bizCarousel = document.getElementById('bizCarousel');
+      c.business_types.forEach(b => {
+        bizCarousel.innerHTML += `<div class="biz-card"><div class="biz-icon"><i class="${escapeHtml(b.icon)}"></i></div><div class="biz-name">${escapeHtml(b.name)}</div></div>`;
+      });
+
+      // Steps
+      const stepsGrid = document.getElementById('stepsGrid');
+      c.steps.forEach((s, i) => {
+        stepsGrid.innerHTML += `<div class="step-card reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
+          <div class="step-number">${i + 1}</div>
+          <h3 class="step-title">${escapeHtml(s.title)}</h3>
+          <p class="step-desc">${escapeHtml(s.desc)}</p>
+        </div>`;
+      });
+
+      // Pricing
+      const pricingGrid = document.getElementById('pricingGrid');
+      c.pricing.forEach((p, i) => {
+        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
+        pricingGrid.innerHTML += `<div class="pricing-card ${p.featured ? 'featured' : ''} reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
+          ${p.featured ? '<div class="pricing-popular">الأكثر طلباً</div>' : ''}
+          <div class="pricing-name">${escapeHtml(p.name)}</div>
+          <div class="pricing-desc">${escapeHtml(p.desc)}</div>
+          <div class="pricing-price"><span class="currency">ج.م</span>${escapeHtml(p.price)}</div>
+          <div class="pricing-period">${escapeHtml(p.period)}</div>
+          <ul class="pricing-features">${featuresHtml}</ul>
+          <button class="btn-pricing ${p.featured ? 'primary' : 'outlined'}">اشترك الآن</button>
+        </div>`;
+      });
+
+      // Testimonials
+      const testimonialsGrid = document.getElementById('testimonialsGrid');
+      c.testimonials.forEach((t, i) => {
+        const fullStars = Math.floor(t.stars);
+        const halfStar = t.stars % 1 >= 0.5;
+        let starsHtml = '';
+        for (let s = 0; s < fullStars; s++) starsHtml += '<i class="fas fa-star"></i>';
+        if (halfStar) starsHtml += '<i class="fas fa-star-half-alt"></i>';
+        testimonialsGrid.innerHTML += `<div class="testimonial-card reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
+          <div class="testimonial-stars">${starsHtml}</div>
+          <p class="testimonial-text">"${escapeHtml(t.text)}"</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">${escapeHtml(t.avatar)}</div>
+            <div><div class="testimonial-name">${escapeHtml(t.name)}</div><div class="testimonial-role">${escapeHtml(t.role)}</div></div>
+          </div>
+        </div>`;
+      });
+
+      // FAQ
+      const faqList = document.getElementById('faqList');
+      c.faq.forEach((f, i) => {
+        faqList.innerHTML += `<div class="faq-item reveal ${i > 0 ? 'reveal-delay-' + Math.min(i, 4) : ''}">
+          <div class="faq-question" onclick="toggleFAQ(this)"><span>${escapeHtml(f.q)}</span><i class="fas fa-chevron-down"></i></div>
+          <div class="faq-answer">${escapeHtml(f.a)}</div>
+        </div>`;
+      });
+
+      // CTA
+      document.getElementById('ctaTitle').textContent = c.cta.title;
+      document.getElementById('ctaDesc').textContent = c.cta.desc;
+      document.getElementById('ctaBtnPrimary').querySelector('span').textContent = c.cta.btn_primary;
+      document.getElementById('ctaBtnSecondary').querySelector('span').textContent = c.cta.btn_secondary;
+
+      // Footer
+      document.getElementById('footerBrandDesc').textContent = c.footer.brand_desc;
+      document.getElementById('footerCopyright').innerHTML = `&copy; ${new Date().getFullYear()} ${escapeHtml(c.footer.copyright)}. صنع بـ <i class="fas fa-heart" style="color:var(--danger)"></i> في مصر`;
+
+      // Init animations after render
+      initAnimations();
+      startTyping(c.hero.typing_phrases);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ── Animations ──
+    function initAnimations() {
+      // Scroll reveal
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+      // Counter animation
+      const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) { animateCounters(); statsObserver.disconnect(); }
+        });
+      }, { threshold: 0.3 });
+      const statsBar = document.querySelector('.stats-bar');
+      if (statsBar) statsObserver.observe(statsBar);
+
+      // Mockup counters
+      document.querySelectorAll('[data-counter]').forEach(el => {
+        const target = parseInt(el.dataset.counter);
+        const dur = 2500, start = performance.now();
+        function upd(now) {
+          const p = Math.min((now - start) / dur, 1);
+          el.textContent = Math.floor(target * (1 - Math.pow(1-p,3))).toLocaleString('ar-EG');
+          if (p < 1) requestAnimationFrame(upd);
+        }
+        setTimeout(() => requestAnimationFrame(upd), 800);
+      });
+
+      // Chart bars
+      const chart = document.getElementById('mockupChart');
+      if (chart) {
+        const h = [55,80,45,95,70,60,85,50,90,65,75,40];
+        const c = ['#3b82f6','#7c3aed','#10b981','#3b82f6','#f59e0b','#7c3aed','#10b981','#3b82f6','#f59e0b','#7c3aed','#3b82f6','#10b981'];
+        h.forEach((v,i) => {
+          const bar = document.createElement('div');
+          bar.className = 'chart-bar';
+          bar.style.height = v+'%';
+          bar.style.background = `linear-gradient(180deg,${c[i]},${c[i]}44)`;
+          bar.style.animationDelay = `${0.5+i*0.1}s`;
+          chart.appendChild(bar);
+        });
+      }
+
+      // Particles
+      const pc = document.getElementById('particles');
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random()*100+'%';
+        p.style.animationDuration = (8+Math.random()*15)+'s';
+        p.style.animationDelay = Math.random()*10+'s';
+        p.style.width = p.style.height = (2+Math.random()*3)+'px';
+        p.style.background = ['rgba(37,99,235,0.4)','rgba(124,58,237,0.4)','rgba(16,185,129,0.3)'][Math.floor(Math.random()*3)];
+        pc.appendChild(p);
+      }
+
+      // Biz carousel auto-scroll
+      const carousel = document.querySelector('.biz-carousel');
+      if (carousel) {
+        let dir = 1;
+        setInterval(() => {
+          if (carousel.scrollLeft >= carousel.scrollWidth - carousel.clientWidth - 10) dir = -1;
+          if (carousel.scrollLeft <= 10) dir = 1;
+          carousel.scrollBy({ left: dir * 2 });
+        }, 30);
+      }
+    }
+
+    function animateCounters() {
+      document.querySelectorAll('[data-count]').forEach(el => {
+        const target = parseInt(el.dataset.count);
+        const suffix = el.textContent.replace(/[0-9]/g, '');
+        const dur = 2000, start = performance.now();
+        function upd(now) {
+          const p = Math.min((now - start) / dur, 1);
+          el.textContent = Math.floor(target * (1 - Math.pow(1-p,3))) + suffix;
+          if (p < 1) requestAnimationFrame(upd);
+        }
+        requestAnimationFrame(upd);
+      });
+    }
+
+    // ── Typing Effect ──
+    function startTyping(phrases) {
+      if (!phrases || !phrases.length) return;
+      const el = document.getElementById('typingText');
+      let pi = 0, ci = 0, deleting = false;
+      el.textContent = phrases[0];
+
+      function type() {
+        const cur = phrases[pi];
+        if (!deleting) {
+          el.textContent = cur.substring(0, ci + 1);
+          ci++;
+          if (ci === cur.length) { deleting = true; setTimeout(type, 2000); return; }
+        } else {
+          el.textContent = cur.substring(0, ci - 1);
+          ci--;
+          if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+        }
+        setTimeout(type, deleting ? 40 : 80);
+      }
+      setTimeout(type, 2500);
+    }
+
+    // ── Utils ──
+    function smoothScroll(sel) {
+      const el = document.querySelector(sel);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function toggleFAQ(el) {
+      const item = el.parentElement;
+      const wasActive = item.classList.contains('active');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+      if (!wasActive) item.classList.add('active');
+    }
+
+    // Navbar scroll
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Mobile menu
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      const links = document.querySelector('.navbar-links');
+      const vis = links.style.display === 'flex';
+      Object.assign(links.style, {
+        display: vis ? 'none' : 'flex', position: 'absolute', top: '100%', right: '0', left: '0',
+        background: 'rgba(10,14,26,0.95)', backdropFilter: 'blur(20px)',
+        flexDirection: 'column', padding: '20px', gap: '16px', borderBottom: '1px solid var(--border)'
+      });
+    });
+
+    // Init
+    loadConfig();
+  </script>
+</body>
+</html>
