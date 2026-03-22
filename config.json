@@ -11,7 +11,10 @@
     "description": "نظام نقاط بيع ومحاسبة احترافي يعمل بدون إنترنت — مصمم خصيصاً للأنشطة التجارية العربية مع دعم كامل للعربية.",
     "download_url": "",
     "btn_primary": "تحميل مجاني",
-    "btn_secondary": "شاهد المميزات"
+    "btn_secondary": "شاهد المميزات",
+    "show_download": true,
+    "show_subscribe": true,
+    "show_contact": true
   },
   "stats": [
     {

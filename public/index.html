@@ -280,8 +280,10 @@
           </span>
         </h1>
         <p class="hero-description" id="heroDesc"></p>
-        <div class="hero-buttons">
+        <div class="hero-buttons" id="heroButtons">
           <button class="btn-hero-primary" id="heroBtnPrimary" onclick="smoothScroll('#pricing')"><i class="fas fa-download"></i> <span></span></button>
+          <button class="btn-hero-secondary" id="heroBtnSubscribe" onclick="smoothScroll('#pricing')"><i class="fas fa-crown"></i> <span>اشترك الآن</span></button>
+          <button class="btn-hero-secondary" id="heroBtnContact" onclick="smoothScroll('#footer')"><i class="fas fa-envelope"></i> <span>تواصل معنا</span></button>
           <button class="btn-hero-secondary" onclick="smoothScroll('#features')"><i class="fas fa-play-circle"></i> <span id="heroBtnSecondary"></span></button>
         </div>
       </div>
@@ -483,6 +485,11 @@
         document.getElementById('ctaBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
       }
 
+      // Button visibility
+      if (c.hero.show_download === false) document.getElementById('heroBtnPrimary').style.display = 'none';
+      if (c.hero.show_subscribe === false) document.getElementById('heroBtnSubscribe').style.display = 'none';
+      if (c.hero.show_contact === false) document.getElementById('heroBtnContact').style.display = 'none';
+
       // Stats
       const statsGrid = document.getElementById('statsGrid');
       c.stats.forEach((s, i) => {
@@ -521,15 +528,16 @@
       // Pricing
       const pricingGrid = document.getElementById('pricingGrid');
       c.pricing.forEach((p, i) => {
-        const featuresHtml = p.features.map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
-        pricingGrid.innerHTML += `<div class="pricing-card ${p.featured ? 'featured' : ''} reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
-          ${p.featured ? '<div class="pricing-popular">الأكثر طلباً</div>' : ''}
+        const isFeatured = p.featured || p.is_popular;
+        const featuresHtml = (p.features || []).map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
+        pricingGrid.innerHTML += `<div class="pricing-card ${isFeatured ? 'featured' : ''} reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
+          ${isFeatured ? '<div class="pricing-popular">الأكثر طلباً</div>' : ''}
           <div class="pricing-name">${escapeHtml(p.name)}</div>
           <div class="pricing-desc">${escapeHtml(p.desc)}</div>
           <div class="pricing-price"><span class="currency">ج.م</span>${escapeHtml(p.price)}</div>
           <div class="pricing-period">${escapeHtml(p.period)}</div>
           <ul class="pricing-features">${featuresHtml}</ul>
-          <button class="btn-pricing ${p.featured ? 'primary' : 'outlined'}">اشترك الآن</button>
+          <button class="btn-pricing ${isFeatured ? 'primary' : 'outlined'}">اشترك الآن</button>
         </div>`;
       });
 

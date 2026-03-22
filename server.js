@@ -30,17 +30,29 @@ function verifyApiSecret(req, res, next) {
   next();
 }
 
-// ─── Config helpers ───
+// ─── Config helpers with in-memory cache ───
+let configCache = null;
+
 function getConfig() {
+  if (configCache) return configCache;
   try {
     const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
-    return JSON.parse(raw);
+    configCache = JSON.parse(raw);
+    return configCache;
   } catch {
-    return null;
+    // Fall back to defaults
+    try {
+      const raw = fs.readFileSync(DEFAULT_CONFIG_PATH, 'utf8');
+      configCache = JSON.parse(raw);
+      return configCache;
+    } catch {
+      return null;
+    }
   }
 }
 
 function saveConfig(config) {
+  configCache = config;
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
 }
 
@@ -121,12 +133,18 @@ app.post('/api/admin/reset', verifyApiSecret, (req, res) => {
     if (fs.existsSync(DEFAULT_CONFIG_PATH)) {
       const defaults = fs.readFileSync(DEFAULT_CONFIG_PATH, 'utf8');
       fs.writeFileSync(CONFIG_PATH, defaults, 'utf8');
+      configCache = JSON.parse(defaults);
     }
     res.json({ success: true, message: 'تم إعادة الإعدادات الافتراضية' });
   } catch (error) {
     console.error('Error resetting config:', error);
     res.status(500).json({ success: false, message: 'فشل في إعادة الإعدادات' });
   }
+});
+
+// ─── Health check ───
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // ─── Serve landing page ───
@@ -136,6 +154,18 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[LANDING PAGE] Server running on port ${PORT}`);
+
+  // Keep-alive: ping self every 13 minutes to prevent Render free tier sleep
+  const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+  if (SELF_URL) {
+    const protocol = SELF_URL.startsWith('https') ? require('https') : require('http');
+    setInterval(() => {
+      protocol.get(`${SELF_URL}/api/health`, () => {
+        console.log('[KEEP-ALIVE] Self ping sent');
+      }).on('error', () => {});
+    }, 13 * 60 * 1000); // Every 13 minutes
+    console.log('[KEEP-ALIVE] Self-ping enabled (every 13 min)');
+  }
 });
 
 module.exports = app;
