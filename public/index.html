@@ -480,9 +480,20 @@
       document.getElementById('heroDesc').textContent = c.hero.description;
       document.getElementById('heroBtnPrimary').querySelector('span').textContent = c.hero.btn_primary;
       document.getElementById('heroBtnSecondary').textContent = c.hero.btn_secondary;
+
+      // Subscribe & Contact button texts
+      if (c.hero.btn_subscribe_text) document.getElementById('heroBtnSubscribe').querySelector('span').textContent = c.hero.btn_subscribe_text;
+      if (c.hero.btn_contact_text) document.getElementById('heroBtnContact').querySelector('span').textContent = c.hero.btn_contact_text;
+
+      // Button URLs
       if (c.hero.download_url) {
         document.getElementById('heroBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
-        document.getElementById('ctaBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
+      }
+      if (c.hero.subscribe_url) {
+        document.getElementById('heroBtnSubscribe').onclick = () => window.open(c.hero.subscribe_url, '_blank');
+      }
+      if (c.hero.contact_url) {
+        document.getElementById('heroBtnContact').onclick = () => window.open(c.hero.contact_url, '_blank');
       }
 
       // Button visibility
@@ -573,6 +584,16 @@
       document.getElementById('ctaDesc').textContent = c.cta.desc;
       document.getElementById('ctaBtnPrimary').querySelector('span').textContent = c.cta.btn_primary;
       document.getElementById('ctaBtnSecondary').querySelector('span').textContent = c.cta.btn_secondary;
+
+      // CTA button URLs
+      if (c.cta.btn_primary_url) {
+        document.getElementById('ctaBtnPrimary').onclick = () => window.open(c.cta.btn_primary_url, '_blank');
+      } else if (c.hero.download_url) {
+        document.getElementById('ctaBtnPrimary').onclick = () => window.open(c.hero.download_url, '_blank');
+      }
+      if (c.cta.btn_secondary_url) {
+        document.getElementById('ctaBtnSecondary').onclick = () => window.open(c.cta.btn_secondary_url, '_blank');
+      }
 
       // Footer
       document.getElementById('footerBrandDesc').textContent = c.footer.brand_desc;

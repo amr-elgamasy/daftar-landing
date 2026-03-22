@@ -10,8 +10,12 @@
     ],
     "description": "نظام نقاط بيع ومحاسبة احترافي يعمل بدون إنترنت — مصمم خصيصاً للأنشطة التجارية العربية مع دعم كامل للعربية.",
     "download_url": "",
+    "subscribe_url": "",
+    "contact_url": "",
     "btn_primary": "تحميل مجاني",
     "btn_secondary": "شاهد المميزات",
+    "btn_subscribe_text": "اشترك الآن",
+    "btn_contact_text": "تواصل معنا",
     "show_download": true,
     "show_subscribe": true,
     "show_contact": true
@@ -261,7 +265,9 @@
     "title": "جاهز تنظّم تجارتك؟",
     "desc": "حمّل دفتر الآن وابدأ بالنسخة التجريبية المجانية — بدون بطاقة ائتمان",
     "btn_primary": "حمّل مجاناً الآن",
-    "btn_secondary": "تواصل معنا"
+    "btn_primary_url": "",
+    "btn_secondary": "تواصل معنا",
+    "btn_secondary_url": ""
   },
   "footer": {
     "brand_desc": "نظام نقاط بيع ومحاسبة متكامل — مصمم للأنشطة التجارية العربية. يعمل بدون إنترنت بأداء فائق وأمان متقدم.",
