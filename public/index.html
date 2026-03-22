@@ -538,7 +538,11 @@
 
       // Pricing
       const pricingGrid = document.getElementById('pricingGrid');
-      c.pricing.forEach((p, i) => {
+      if (!c.pricing || c.pricing.length === 0) {
+        const pricingSection = document.getElementById('pricing');
+        if (pricingSection) pricingSection.style.display = 'none';
+      }
+      (c.pricing || []).forEach((p, i) => {
         const isFeatured = p.featured || p.is_popular;
         const featuresHtml = (p.features || []).map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('');
         pricingGrid.innerHTML += `<div class="pricing-card ${isFeatured ? 'featured' : ''} reveal ${i > 0 ? 'reveal-delay-' + i : ''}">
